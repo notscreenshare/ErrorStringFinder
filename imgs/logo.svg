@@ -1,0 +1,9 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+	<title>Новый проект</title>
+	<defs>
+		<image width="960" height="960" id="img1" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjRweCIgdmlld0JveD0iMCAtOTYwIDk2MCA5NjAiIHdpZHRoPSIyNHB4IiBmaWxsPSIjQjdCN0I3Ij48cGF0aCBkPSJtNDQzLTM2MiA3NC0xMDEgNzMgMTAxIDEzMC0xNzctNjQtNDctNjYgODktNzQtMTAxLTczIDEwMS03NC0xMDEtMTI5IDE3NyA2NCA0NyA2NS04OSA3NCAxMDFabTM3IDI4MnEtODMgMC0xNTYtMzEuNVQxOTctMTk3cS01NC01NC04NS41LTEyN1Q4MC00ODBxMC04MyAzMS41LTE1NlQxOTctNzYzcTU0LTU0IDEyNy04NS41VDQ4MC04ODBxODMgMCAxNTYgMzEuNVQ3NjMtNzYzcTU0IDU0IDg1LjUgMTI3VDg4MC00ODBxMCA4My0zMS41IDE1NlQ3NjMtMTk3cS01NCA1NC0xMjcgODUuNVQ0ODAtODBabTAtODBxMTM0IDAgMjI3LTkzdDkzLTIyN3EwLTEzNC05My0yMjd0LTIyNy05M3EtMTM0IDAtMjI3IDkzdC05MyAyMjdxMCAxMzQgOTMgMjI3dDIyNyA5M1ptMC0zMjBaIi8+PC9zdmc+"/>
+	</defs>
+	<style>
+	</style>
+	<use id="logo" href="#img1" transform="matrix(.067,0,0,.067,0,0)"/>
+</svg>
