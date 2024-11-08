@@ -1,0 +1,6 @@
+#window { background-color: #292929; }
+#text { font-size: 20px; font-weight: 600; color: #B7B7B7; }
+#box_process_label, #box_strings_label { font-size: 15px; font-weight: 600; color: #B7B7B7; }
+#box_strings, #scrolled_window { border: #181818 solid 1px; border-radius: 7px; background-color: #373737 }
+#find_b { font-size: 15px; color: #b7b7b7; }
+#box_process { font-size: 13px; }
