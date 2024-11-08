@@ -1,0 +1,10 @@
+{
+    "C_Cpp.errorSquiggles": "disabled",
+    "files.associations": {
+        "stat.h": "c",
+        "errno.h": "c",
+        "signal.h": "c",
+        "string.h": "c",
+        "gtk.h": "c"
+    }
+}
