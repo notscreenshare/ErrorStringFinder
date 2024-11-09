@@ -185,7 +185,7 @@ void on_find_button_clicked(GtkButton *button, gpointer user_data) {
 
     GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(box_strings);
     if (!GTK_IS_TEXT_BUFFER(text_buffer)) {
-        g_print("Error: Invalid text buffer\n");
+        g_print("Error...\n");
         g_free(selected_process);
         return;
     }
@@ -196,7 +196,7 @@ void on_find_button_clicked(GtkButton *button, gpointer user_data) {
 
     GtkTextBuffer *result_buffer = gtk_text_view_get_buffer(result_text_view);
     if (!GTK_IS_TEXT_BUFFER(result_buffer)) {
-        g_print("Error: Invalid result buffer\n");
+        g_print("Error...\n");
         g_free(selected_process);
         g_free(text_in_box);
         return;
@@ -222,8 +222,7 @@ void on_find_button_clicked(GtkButton *button, gpointer user_data) {
                 char *full_string = search_in_memory(pid, search_string);
                 if (full_string) {
                     found_any = TRUE;
-                    gchar *result = g_strdup_printf("%s  |  %s  |  %s\n", 
-                                                    keyword, search_string, full_string);
+                    gchar *result = g_strdup_printf("%s  |  %s  |  %s\n", keyword, search_string, full_string);
                     gtk_text_buffer_insert_at_cursor(result_buffer, result, -1);
                     g_free(result);
                     free(full_string);
