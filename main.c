@@ -3,13 +3,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <fcntl.h>
 #include <unistd.h>
-#include <sys/mman.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/ptrace.h>
-#include <signal.h>
-#include <sys/wait.h>
 
 typedef struct {
     char process_name[256];
@@ -17,12 +15,16 @@ typedef struct {
     double memory_gb;
 } ProcessInfo;
 
+typedef struct {
+    GtkTextView *box_strings;
+    GtkWindow *result_window;
+    GtkTextView *result_text_view;
+} SearchWidgets;
+
 int compare_processes(const void *a, const void *b) {
     double memory_a = ((ProcessInfo *)a)->memory_gb;
     double memory_b = ((ProcessInfo *)b)->memory_gb;
-    if (memory_b > memory_a) return 1;
-    if (memory_b < memory_a) return -1;
-    return 0;
+    return (memory_b > memory_a) - (memory_b < memory_a);
 }
 
 double get_process_memory(int pid) {
@@ -48,7 +50,7 @@ double get_process_memory(int pid) {
 void populate_processes(GtkComboBoxText *combo_box, const gchar *filter) {
     DIR *dir = opendir("/proc");
     if (!dir) {
-        perror("Cannot open /proc");
+        perror("Error...#104");
         return;
     }
     struct dirent *entry;
@@ -98,125 +100,162 @@ void populate_processes(GtkComboBoxText *combo_box, const gchar *filter) {
     }
 }
 
-void on_combo_box_changed(GtkComboBoxText *combo_box, gpointer user_data) {
-    GtkTextView *text_view = GTK_TEXT_VIEW(user_data);
-    GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
-    
-    gtk_text_buffer_set_text(text_buffer, "", -1);
-}
+char* search_in_memory(int pid, const char *keyword) {
+    char maps_path[64], mem_path[64];
+    snprintf(maps_path, sizeof(maps_path), "/proc/%d/maps", pid);
+    snprintf(mem_path, sizeof(mem_path), "/proc/%d/mem", pid);
 
-void read_process_memory(pid_t pid, void *address, void *buffer, size_t size) {
-    if (ptrace(PTRACE_ATTACH, pid, NULL, NULL) == -1) {
-        perror("ptrace attach failed");
-        return;
+    FILE *maps_file = fopen(maps_path, "r");
+    if (!maps_file) {
+        return NULL;
+    }
+    int mem_fd = open(mem_path, O_RDONLY);
+    if (mem_fd == -1) {
+        fclose(maps_file);
+        return NULL;
     }
 
-    waitpid(pid, NULL, 0);
+    unsigned long start, end;
+    char perms[5], line[256];
+    const size_t block_size = 4096;
+    char *buffer = malloc(block_size);
+    if (!buffer) {
+        g_print("Memory error.\n");
+        fclose(maps_file);
+        close(mem_fd);
+        return NULL;
+    }
 
-    unsigned long addr = (unsigned long)address;
-    size_t bytes_read = 0;
+    char *found_string = NULL;
+    while (fgets(line, sizeof(line), maps_file)) {
+        if (sscanf(line, "%lx-%lx %4s", &start, &end, perms) == 3) {
+            if (perms[0] != 'r') continue;
 
-    while (bytes_read < size) {
-        errno = 0;
-        long data = ptrace(PTRACE_PEEKDATA, pid, (void *)addr, NULL);
-        if (data == -1) {
-            perror("ptrace peekdata failed");
-            if (errno == ESRCH) {
-                printf("No such process\n");
-            } else if (errno == EIO) {
-                printf("I/O error, possibly invalid address or access denied\n");
+            size_t region_size = end - start;
+            for (size_t offset = 0; offset < region_size; offset += block_size) {
+                ssize_t bytes_to_read = (region_size - offset < block_size) ? (region_size - offset) : block_size;
+                ssize_t bytes_read = pread(mem_fd, buffer, bytes_to_read, start + offset);
+
+                if (bytes_read == -1) {
+                    break;
+                }
+
+                void *match_ptr = memmem(buffer, bytes_read, keyword, strlen(keyword));
+                if (match_ptr) {
+                    size_t match_offset = (char*)match_ptr - buffer;
+
+                    size_t line_start = match_offset;
+                    while (line_start > 0 && buffer[line_start - 1] != '\n') {
+                        line_start--;
+                    }
+
+                    size_t line_end = match_offset;
+                    while (line_end < bytes_read && buffer[line_end] != '\n') {
+                        line_end++;
+                    }
+
+                    size_t line_length = line_end - line_start;
+                    found_string = strndup(buffer + line_start, line_length);
+                    break;
+                }
             }
-            break;
-        }
 
-        size_t to_copy = sizeof(long);
-        if (bytes_read + to_copy > size) {
-            to_copy = size - bytes_read;
+            if (found_string) break;
         }
-
-        memcpy((char *)buffer + bytes_read, &data, to_copy);
-        bytes_read += to_copy;
-        addr += sizeof(long);
     }
-    ptrace(PTRACE_DETACH, pid, NULL, NULL);
-}
 
-gboolean is_process_alive(int pid) {
-    return kill(pid, 0) == 0;
+    free(buffer);
+    fclose(maps_file);
+    close(mem_fd);
+    return found_string;
 }
 
 void on_find_button_clicked(GtkButton *button, gpointer user_data) {
     GtkComboBoxText *box_process = GTK_COMBO_BOX_TEXT(user_data);
-    GtkTextView *box_strings = GTK_TEXT_VIEW(g_object_get_data(G_OBJECT(button), "box_strings"));
-    GtkWidget *result_window = GTK_WIDGET(g_object_get_data(G_OBJECT(button), "result_window"));
-    GtkLabel *result_label = GTK_LABEL(g_object_get_data(G_OBJECT(result_window), "result_label"));
-    GtkTextView *result_text_view = GTK_TEXT_VIEW(g_object_get_data(G_OBJECT(result_window), "result_text_view"));
+    SearchWidgets *widgets = g_object_get_data(G_OBJECT(button), "search_widgets");
+    GtkTextView *box_strings = widgets->box_strings;
+    GtkWidget *result_window = GTK_WIDGET(widgets->result_window);
+    GtkTextView *result_text_view = widgets->result_text_view;
 
     gchar *selected_process = gtk_combo_box_text_get_active_text(box_process);
     if (!selected_process) {
-        g_print("Please select a process.\n");
+        g_print("Choose process.\n");
         return;
     }
 
-    int pid = -1;
-    if (sscanf(selected_process, "%*[^-] --- %d", &pid) != 1) {
-        g_print("Failed to extract PID from selection.\n");
+    GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(box_strings);
+    if (!GTK_IS_TEXT_BUFFER(text_buffer)) {
+        g_print("Error: Invalid text buffer\n");
         g_free(selected_process);
         return;
     }
-    g_free(selected_process);
 
-    GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(box_strings);
     GtkTextIter start, end;
     gtk_text_buffer_get_bounds(text_buffer, &start, &end);
     gchar *text_in_box = gtk_text_buffer_get_text(text_buffer, &start, &end, FALSE);
 
+    GtkTextBuffer *result_buffer = gtk_text_view_get_buffer(result_text_view);
+    if (!GTK_IS_TEXT_BUFFER(result_buffer)) {
+        g_print("Error: Invalid result buffer\n");
+        g_free(selected_process);
+        g_free(text_in_box);
+        return;
+    }
+
+    gtk_text_buffer_set_text(result_buffer, "", -1);
+
+    int pid;
+    sscanf(selected_process, "%*s --- %d", &pid);
+
     if (text_in_box && *text_in_box != '\0') {
         gchar **lines = g_strsplit(text_in_box, "\n", -1);
+        gboolean found_any = FALSE;
 
         for (int i = 0; lines[i] != NULL; i++) {
             gchar *line = lines[i];
             gchar **parts = g_strsplit(line, "---", 2);
 
             if (parts[0] && parts[1]) {
-                const char *keyword = parts[0];
-                const char *search_string = parts[1];
+                const char *keyword = g_strstrip(parts[0]);
+                const char *search_string = g_strstrip(parts[1]);
 
-                // Здесь запускаем файл file.c как внешнюю программу через popen
-                FILE *fp;
-                char result[1024];
-                char command[512];
-                snprintf(command, sizeof(command), "./file_search %d \"%s\"", pid, search_string);
-
-                fp = popen(command, "r");
-                if (fp == NULL) {
-                    perror("popen failed");
-                    break;
+                char *full_string = search_in_memory(pid, search_string);
+                if (full_string) {
+                    found_any = TRUE;
+                    gchar *result = g_strdup_printf("%s  |  %s  |  %s\n", 
+                                                    keyword, search_string, full_string);
+                    gtk_text_buffer_insert_at_cursor(result_buffer, result, -1);
+                    g_free(result);
+                    free(full_string);
                 }
-
-                while (fgets(result, sizeof(result), fp) != NULL) {
-                    GtkTextBuffer *result_buffer = gtk_text_view_get_buffer(result_text_view);
-                    GtkTextIter result_end;
-                    gtk_text_buffer_get_end_iter(result_buffer, &result_end);
-                    gtk_text_buffer_insert(result_buffer, &result_end, result, -1);
-                }
-
-                fclose(fp);
             }
-
             g_strfreev(parts);
         }
+
+        if (!found_any) {
+            gtk_widget_show_all(result_window);
+            gtk_text_buffer_set_text(result_buffer, "Nothing found.", -1);
+        } else {
+            if (!gtk_widget_is_visible(result_window)) {
+                gtk_widget_show_all(result_window);
+            }
+        }
+
         g_strfreev(lines);
+    } else {
+        g_print("Enter strings.\n");
     }
+
+    g_free(selected_process);
+    g_free(text_in_box);
 }
 
-int search_keyword(const char *buffer, size_t buffer_size, const char *keyword) {
-    for (size_t i = 0; i <= buffer_size - strlen(keyword); i++) {
-        if (memcmp(buffer + i, keyword, strlen(keyword)) == 0) {
-            return 1;  
-        }
-    }
-    return 0;
+
+void on_combo_box_changed(GtkComboBoxText *combo_box, gpointer user_data) {
+    GtkTextView *text_view = GTK_TEXT_VIEW(user_data);
+    GtkTextBuffer *text_buffer = gtk_text_view_get_buffer(text_view);
+    
+    gtk_text_buffer_set_text(text_buffer, "", -1);
 }
 
 static void activate(GtkApplication *app, gpointer user_data) {
@@ -302,21 +341,25 @@ static void activate(GtkApplication *app, gpointer user_data) {
     gtk_widget_set_name(GTK_WIDGET(box_strings), "box_strings");
     g_signal_connect(box_process, "changed", G_CALLBACK(on_combo_box_changed), box_strings);
 
+    SearchWidgets *widgets = g_new(SearchWidgets, 1);
+    widgets->box_strings = GTK_TEXT_VIEW(box_strings);
+    widgets->result_window = GTK_WINDOW(result_window);
+    widgets->result_text_view = GTK_TEXT_VIEW(result_text_view);
     GtkWidget *find_b = gtk_button_new_with_label("Find");
     gtk_widget_set_size_request(GTK_WIDGET(find_b), 70, 30);
     gtk_widget_set_name(GTK_WIDGET(find_b), "find_b");
     gtk_fixed_put(GTK_FIXED(fixed), find_b, 215, 470);
+    g_object_set_data_full(G_OBJECT(find_b), "search_widgets", widgets, g_free);
     g_signal_connect(find_b, "clicked", G_CALLBACK(on_find_button_clicked), box_process);
     g_object_set_data(G_OBJECT(find_b), "box_strings", box_strings);
     g_object_set_data(G_OBJECT(find_b), "result_window", result_window);
-    g_object_set_data(G_OBJECT(result_window), "result_label", result_label);
-    g_object_set_data(G_OBJECT(result_window), "result_text_view", result_text_view);
-
+    g_object_set_data(G_OBJECT(find_b), "result_text_view", result_text_view);
+    g_signal_connect(result_window, "delete-event", G_CALLBACK(gtk_widget_hide_on_delete), NULL);
 
     css_provider = gtk_css_provider_new();
     gtk_css_provider_load_from_resource(css_provider, "/df/error/styles/style.css");
     gtk_style_context_add_provider_for_screen(gdk_screen_get_default(), GTK_STYLE_PROVIDER(css_provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
-    
+
     gtk_widget_show_all(window);
 }
 
