@@ -5,7 +5,7 @@
     </picture>
 </h1>
 <p align="center">
-  <em>Detect error string in process on linux easily.</em>
+  <em>Detect string in process on linux easily.</em>
 </p>
 
 https://github.com/user-attachments/assets/4864b8b3-f72e-46fd-bc4e-5a48f0920b2a
@@ -14,16 +14,16 @@ https://github.com/user-attachments/assets/4864b8b3-f72e-46fd-bc4e-5a48f0920b2a
 ---
 
 ### **Compile:**
-##### You can easily compile ESfinder
+##### You can easily compile ESF
 ```sh
 $ ./compile.sh
 ```
 
 ### **Info:**
 #### How to use?:
-##### 1. Open ESfinder
+##### 1. Open ESF
 ```sh
-$ sudo -E <esfinder-file>
+$ sudo -E <esf-file>
 ```
 ##### 2. Select Process
 ![image](https://github.com/user-attachments/assets/a1df14d4-ef0f-4597-934f-8bb72370ba8f)
