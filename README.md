@@ -1,23 +1,42 @@
-# Error String Finder
+<h1 align="center">
+  <picture>
+      <source height="125" media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/notscreenshare/assets/refs/heads/main/ESfinder.svg">
+      <img height="125" alt="ESfinder" src="https://raw.githubusercontent.com/notscreenshare/assets/refs/heads/main/ESfinder.svg">
+    </picture>
+</h1>
+<p align="center">
+  <em>Detect error string in process on linux easily.</em>
+</p>
+
+https://github.com/user-attachments/assets/4864b8b3-f72e-46fd-bc4e-5a48f0920b2a
+
+
+---
 
 ### **Compile:**
-
-Resources compile to bytes: 
-
-`glib-compile-resources --target=./resources/resources.c --generate-source ./resources/resources.xml`
- 
-Compile:
-
-`gcc -g ./main.c ./resources/resources.c ./file.c -o ./main -I/usr/include/gtk-3.0 -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/fribidi -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/x86_64-linux-gnu -I/usr/include/webp -I/usr/include/gio-unix-2.0 -I/usr/include/atk-1.0 -I/usr/include/at-spi2-atk/2.0 -I/usr/include/at-spi-2.0 -I/usr/include/dbus-1.0 -I/usr/lib/x86_64-linux-gnu/dbus-1.0/include -pthread -DFRIBIDI_LIB_STATIC -DXML_STATIC -DLZMA_API_STATIC -lglib-2.0 -lgobject-2.0 -lgtk-3 -lgdk-3 -lpango-1.0 -lcairo -lgmodule-2.0 -lpthread -lz -lbz2 -lbrotlicommon -lpcre2-8 -lm -ljpeg -lpng16 -ltiff -lwebp -lLerc -ljbig -lsharpyuv -lzstd -llzma -ldeflate -ldl -lX11 -lxcb -lXau -lgio-2.0 -lgdk_pixbuf-2.0`
-
+##### You can easily compile ESfinder
+```sh
+$ ./compile.sh
+```
 
 ### **Info:**
-How to use?:
+#### How to use?:
+##### 1. Open ESfinder
+```sh
+$ sudo -E <esfinder-file>
+```
+##### 2. Select Process
+![image](https://github.com/user-attachments/assets/a1df14d4-ef0f-4597-934f-8bb72370ba8f)
 
-`sudo ./<file-name>`
+##### 3. Select Strings
+![image](https://github.com/user-attachments/assets/d9012a72-0067-49b2-8f24-61892161e31a)
 
-Keyword---String1
+#### How to write string detects?
+Strings have light syntax:
+```
+DetectName---String
+```
 
-Keyword---String2
+---
 
-Keyword---String3
+Maintained by [danfordd](https://github.com/danfordd)
