@@ -1,7 +1,18 @@
 # Error String Finder
+
+### **Compile:**
+
+Resources compile to bytes: 
+
+`glib-compile-resources --target=./resources/resources.c --generate-source ./resources/resources.xml`
+ 
+Compile:
+
+`gcc -g ./main.c ./resources/resources.c ./file.c -o ./main -I/usr/include/gtk-3.0 -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/fribidi -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/x86_64-linux-gnu -I/usr/include/webp -I/usr/include/gio-unix-2.0 -I/usr/include/atk-1.0 -I/usr/include/at-spi2-atk/2.0 -I/usr/include/at-spi-2.0 -I/usr/include/dbus-1.0 -I/usr/lib/x86_64-linux-gnu/dbus-1.0/include -pthread -DFRIBIDI_LIB_STATIC -DXML_STATIC -DLZMA_API_STATIC -lglib-2.0 -lgobject-2.0 -lgtk-3 -lgdk-3 -lpango-1.0 -lcairo -lgmodule-2.0 -lpthread -lz -lbz2 -lbrotlicommon -lpcre2-8 -lm -ljpeg -lpng16 -ltiff -lwebp -lLerc -ljbig -lsharpyuv -lzstd -llzma -ldeflate -ldl -lX11 -lxcb -lXau -lgio-2.0 -lgdk_pixbuf-2.0`
+
+
 ### **Info:**
-How to open?:
-`chmod +x ./<file-name>`,
+How to use?:
 
 `sudo ./<file-name>`
 
