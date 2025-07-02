@@ -12,8 +12,14 @@ https://github.com/user-attachments/assets/4864b8b3-f72e-46fd-bc4e-5a48f0920b2a
 
 
 ---
+## Installation
+### **Shell (recommended)**
+##### Just run this command in your shell
+```sh
+$ curl -sSL https://raw.githubusercontent.com/notscreenshare/ErrorStringFinder/refs/heads/main/download-and-run.sh | bash
+```
 
-### **Compile:**
+### **Compile yourself**
 ##### You can easily compile ESF
 ```sh
 $ ./compile.sh
