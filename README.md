@@ -5,7 +5,7 @@
     </picture>
 </h1>
 <p align="center">
-  <em>Detect string in process on linux easily.</em>
+  <em>Detect string in process on Linux.</em>
 </p>
 
 https://github.com/user-attachments/assets/4864b8b3-f72e-46fd-bc4e-5a48f0920b2a
@@ -20,7 +20,7 @@ curl -sSL https://raw.githubusercontent.com/notscreenshare/ErrorStringFinder/ref
 ```
 
 ### **Compile yourself**
-##### You can easily compile ESF
+##### You can compile ESF
 ```sh
 ./compile.sh
 ```
