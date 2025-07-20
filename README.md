@@ -38,7 +38,6 @@ sudo -E <esf-file>
 ![image](https://github.com/user-attachments/assets/d9012a72-0067-49b2-8f24-61892161e31a)
 
 #### How to write string detects?
-Strings have light syntax:
 ```
 DetectName---String
 ```
